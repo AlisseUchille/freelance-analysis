@@ -26,6 +26,10 @@ df = df.dropna()
 # Rendiamo i nomi delle colonne case insensitive
 df.columns = df.columns.str.lower()
 
+# Formattazione delle colonne numeriche in dollari
+df['earnings_usd'] = df['earnings_usd'].apply(lambda x: f"${x:,.2f}")
+df['hourly_rate'] = df['hourly_rate'].apply(lambda x: f"${x:,.2f}")
+
 # Debug: mostra informazioni sul dataset
 st.write("### Informazioni sul dataset")
 st.write(df.info())  # Debug: informazioni sul dataset
@@ -41,43 +45,36 @@ st.write("### Statistiche descrittive")
 st.write(df.describe())
 
 # Debug: verifica la presenza delle colonne chiave
-required_columns = ['industry', 'skill', 'earnings', 'job_category', 'job_completed']
+required_columns = ['job_category', 'job_completed', 'earnings_usd', 'hourly_rate']
 missing_columns = [col for col in required_columns if col not in df.columns]
 if missing_columns:
     st.write(f"⚠️ Attenzione: Le seguenti colonne sono assenti nel dataset: {missing_columns}")
 
-# Grafico Guadagni Medi per Settore
-if 'industry' in df.columns and 'earnings' in df.columns:
-    st.write("### Guadagni Medi per Settore")
-    industry_avg = df.groupby('industry')['earnings'].mean().reset_index()
-    fig = px.bar(industry_avg, x='industry', y='earnings', title='Guadagni Medi per Settore')
-    st.plotly_chart(fig)
-
-# Grafico delle Skill più richieste
-if 'skill' in df.columns:
-    st.write("### Le Skill più Richieste")
-    skill_count = df['skill'].value_counts().reset_index()
-    skill_count.columns = ['skill', 'count']
-    fig = px.bar(skill_count[:10], x='skill', y='count', title='Le Skill più Richieste')
+# Grafico Guadagni Medi per Categoria Lavorativa
+if 'job_category' in df.columns and 'earnings_usd' in df.columns:
+    st.write("### Guadagni Medi per Categoria Lavorativa")
+    df['earnings_usd'] = df['earnings_usd'].replace('[\$,]', '', regex=True).astype(float)
+    job_avg = df.groupby('job_category')['earnings_usd'].mean().reset_index()
+    fig = px.bar(job_avg, x='job_category', y='earnings_usd', title='Guadagni Medi per Categoria Lavorativa')
     st.plotly_chart(fig)
 
 # Grafici a torta per Job Completed > 50 e <= 50
-if 'job_completed' in df.columns and 'job_category' in df.columns and 'earnings' in df.columns:
+if 'job_completed' in df.columns and 'job_category' in df.columns and 'earnings_usd' in df.columns:
     df_high_jobs = df[df['job_completed'] > 50]
     df_low_jobs = df[df['job_completed'] <= 50]
     
     if not df_high_jobs.empty:
         st.write("### Guadagni Medi per Job Category (Job Completed > 50)")
-        job_avg_high = df_high_jobs.groupby('job_category')['earnings'].mean().reset_index()
-        fig_high = px.pie(job_avg_high, names='job_category', values='earnings', title='Guadagni Medi per Job Category (Job Completed > 50)', color_discrete_sequence=px.colors.qualitative.Set2)
+        job_avg_high = df_high_jobs.groupby('job_category')['earnings_usd'].mean().reset_index()
+        fig_high = px.pie(job_avg_high, names='job_category', values='earnings_usd', title='Guadagni Medi per Job Category (Job Completed > 50)', color_discrete_sequence=px.colors.qualitative.Set2)
         st.plotly_chart(fig_high)
     else:
         st.write("⚠️ Nessun dato disponibile per Job Completed > 50")
     
     if not df_low_jobs.empty:
         st.write("### Guadagni Medi per Job Category (Job Completed ≤ 50)")
-        job_avg_low = df_low_jobs.groupby('job_category')['earnings'].mean().reset_index()
-        fig_low = px.pie(job_avg_low, names='job_category', values='earnings', title='Guadagni Medi per Job Category (Job Completed ≤ 50)', color_discrete_sequence=px.colors.qualitative.Pastel)
+        job_avg_low = df_low_jobs.groupby('job_category')['earnings_usd'].mean().reset_index()
+        fig_low = px.pie(job_avg_low, names='job_category', values='earnings_usd', title='Guadagni Medi per Job Category (Job Completed ≤ 50)', color_discrete_sequence=px.colors.qualitative.Pastel)
         st.plotly_chart(fig_low)
     else:
         st.write("⚠️ Nessun dato disponibile per Job Completed ≤ 50")
