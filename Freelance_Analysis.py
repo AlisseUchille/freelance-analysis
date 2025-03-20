@@ -23,6 +23,9 @@ df = pd.read_csv(DATA_PATH)
 # Rimuoviamo eventuali righe con dati mancanti
 df = df.dropna()
 
+# Rendiamo i nomi delle colonne case insensitive
+df.columns = df.columns.str.lower()
+
 # Debug: verifica la presenza delle colonne chiave
 required_columns = ['industry', 'skill', 'earnings', 'job_category', 'job_completed']
 missing_columns = [col for col in required_columns if col not in df.columns]
