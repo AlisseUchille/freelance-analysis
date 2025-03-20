@@ -30,10 +30,6 @@ st.write(df.columns.tolist())
 st.write("### Statistiche descrittive")
 st.write(df.describe())
 
-# Controllo valori mancanti
-st.write("### Valori mancanti")
-st.write(df.isnull().sum())
-
 # Rimuoviamo eventuali righe con dati mancanti
 df = df.dropna()
 
@@ -61,6 +57,30 @@ if 'skill' in df.columns:
     skill_count.columns = ['skill', 'count']
     fig = px.bar(skill_count[:10], x='skill', y='count', title='Le Skill più Richieste')
     st.plotly_chart(fig)
+
+# Grafico a torta dei guadagni medi per Job Category
+if 'job_category' in df.columns and 'earnings' in df.columns:
+    st.write("### Distribuzione Guadagni Medi per Job Category")
+    job_avg = df.groupby('job_category')['earnings'].mean().reset_index()
+    fig = px.pie(job_avg, names='job_category', values='earnings', title='Guadagni Medi per Job Category', color_discrete_sequence=px.colors.qualitative.Set3)
+    st.plotly_chart(fig)
+
+# Grafici a torta per Job Completed > 50 e < 50
+if 'job_completed' in df.columns and 'job_category' in df.columns and 'earnings' in df.columns:
+    df_high_jobs = df[df['job_completed'] > 50]
+    df_low_jobs = df[df['job_completed'] <= 50]
+    
+    if not df_high_jobs.empty:
+        st.write("### Guadagni Medi per Job Category (Job Completed > 50)")
+        job_avg_high = df_high_jobs.groupby('job_category')['earnings'].mean().reset_index()
+        fig_high = px.pie(job_avg_high, names='job_category', values='earnings', title='Guadagni Medi per Job Category (Job Completed > 50)', color_discrete_sequence=px.colors.qualitative.Set2)
+        st.plotly_chart(fig_high)
+    
+    if not df_low_jobs.empty:
+        st.write("### Guadagni Medi per Job Category (Job Completed ≤ 50)")
+        job_avg_low = df_low_jobs.groupby('job_category')['earnings'].mean().reset_index()
+        fig_low = px.pie(job_avg_low, names='job_category', values='earnings', title='Guadagni Medi per Job Category (Job Completed ≤ 50)', color_discrete_sequence=px.colors.qualitative.Pastel)
+        st.plotly_chart(fig_low)
 
 # Trend dei guadagni nel tempo
 if 'date' in df.columns and 'earnings' in df.columns:
