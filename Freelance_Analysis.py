@@ -26,6 +26,20 @@ df = df.dropna()
 # Rendiamo i nomi delle colonne case insensitive
 df.columns = df.columns.str.lower()
 
+# Debug: mostra informazioni sul dataset
+st.write("### Informazioni sul dataset")
+st.write(df.info())  # Debug: informazioni sul dataset
+st.write("### Prime righe del dataset")
+st.dataframe(df.head())
+
+# Mostra i nomi delle colonne
+st.write("### Nomi delle colonne nel dataset")
+st.write(df.columns.tolist())
+
+# Statistiche descrittive
+st.write("### Statistiche descrittive")
+st.write(df.describe())
+
 # Debug: verifica la presenza delle colonne chiave
 required_columns = ['industry', 'skill', 'earnings', 'job_category', 'job_completed']
 missing_columns = [col for col in required_columns if col not in df.columns]
