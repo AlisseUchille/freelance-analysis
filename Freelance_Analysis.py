@@ -19,7 +19,9 @@ st.markdown(
 DATA_PATH = "freelancer_earnings_bd.csv"  # Modifica con il nome corretto del file
 
 df = pd.read_csv(DATA_PATH)
-st.write("### Anteprima del dataset")
+st.write("### Informazioni sul dataset")
+st.write(df.info())  # Debug: informazioni sul dataset
+st.write("### Prime righe del dataset")
 st.dataframe(df.head())
 
 # Mostra i nomi delle colonne
@@ -32,6 +34,12 @@ st.write(df.describe())
 
 # Rimuoviamo eventuali righe con dati mancanti
 df = df.dropna()
+
+# Debug: verifica la presenza delle colonne chiave
+required_columns = ['industry', 'skill', 'earnings', 'job_category', 'job_completed']
+missing_columns = [col for col in required_columns if col not in df.columns]
+if missing_columns:
+    st.write(f"⚠️ Attenzione: Le seguenti colonne sono assenti nel dataset: {missing_columns}")
 
 # Selezione interattiva dei filtri
 industry_filter = st.selectbox("Seleziona un settore", df['industry'].unique()) if 'industry' in df.columns else None
@@ -58,12 +66,20 @@ if 'skill' in df.columns:
     fig = px.bar(skill_count[:10], x='skill', y='count', title='Le Skill più Richieste')
     st.plotly_chart(fig)
 
+# Debug: verifica il numero di lavori completati > 50 e ≤ 50
+if 'job_completed' in df.columns:
+    st.write(f"Numero di lavori completati > 50: {df[df['job_completed'] > 50].shape[0]}")
+    st.write(f"Numero di lavori completati ≤ 50: {df[df['job_completed'] <= 50].shape[0]}")
+
 # Grafico a torta dei guadagni medi per Job Category
 if 'job_category' in df.columns and 'earnings' in df.columns:
     st.write("### Distribuzione Guadagni Medi per Job Category")
     job_avg = df.groupby('job_category')['earnings'].mean().reset_index()
-    fig = px.pie(job_avg, names='job_category', values='earnings', title='Guadagni Medi per Job Category', color_discrete_sequence=px.colors.qualitative.Set3)
-    st.plotly_chart(fig)
+    if not job_avg.empty:
+        fig = px.pie(job_avg, names='job_category', values='earnings', title='Guadagni Medi per Job Category', color_discrete_sequence=px.colors.qualitative.Set3)
+        st.plotly_chart(fig)
+    else:
+        st.write("⚠️ Nessun dato disponibile per il grafico a torta Job Category!")
 
 # Grafici a torta per Job Completed > 50 e < 50
 if 'job_completed' in df.columns and 'job_category' in df.columns and 'earnings' in df.columns:
@@ -75,12 +91,16 @@ if 'job_completed' in df.columns and 'job_category' in df.columns and 'earnings'
         job_avg_high = df_high_jobs.groupby('job_category')['earnings'].mean().reset_index()
         fig_high = px.pie(job_avg_high, names='job_category', values='earnings', title='Guadagni Medi per Job Category (Job Completed > 50)', color_discrete_sequence=px.colors.qualitative.Set2)
         st.plotly_chart(fig_high)
+    else:
+        st.write("⚠️ Nessun dato disponibile per Job Completed > 50")
     
     if not df_low_jobs.empty:
         st.write("### Guadagni Medi per Job Category (Job Completed ≤ 50)")
         job_avg_low = df_low_jobs.groupby('job_category')['earnings'].mean().reset_index()
         fig_low = px.pie(job_avg_low, names='job_category', values='earnings', title='Guadagni Medi per Job Category (Job Completed ≤ 50)', color_discrete_sequence=px.colors.qualitative.Pastel)
         st.plotly_chart(fig_low)
+    else:
+        st.write("⚠️ Nessun dato disponibile per Job Completed ≤ 50")
 
 # Trend dei guadagni nel tempo
 if 'date' in df.columns and 'earnings' in df.columns:
